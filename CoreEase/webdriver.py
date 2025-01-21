@@ -2,11 +2,14 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import InvalidArgumentException
-def StartBrowser():
+def StartBrowser(optiontruefalse):
     global browser
     browserheadless = Options()
     browserheadless.add_argument("--headless")
-    browser=webdriver.Firefox(options=browserheadless)
+    if optiontruefalse == True:
+        browser=webdriver.Firefox(options=browserheadless)
+    if optiontruefalse == False:
+        browser=webdriver.Firefox()
 def CloseBrowser():
     browser.quit()
 def ClickButton(button):
