@@ -5,9 +5,6 @@ def Shutdown():
     os.system("shutdown /s /t 10")
 def Restart():
     os.system("shutdown /r /t 10")
-def CurrentUser():
-    user = os.getlogin()
-    return user
 def CPUCount():
     cpucount = os.cpu_count()
     return cpucount
