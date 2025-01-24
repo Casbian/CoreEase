@@ -2,7 +2,9 @@ import os
 import math
 from concurrent.futures import ThreadPoolExecutor
 from .system import ConsoleWidth
-executor = ThreadPoolExecutor(max_workers=4)
+from .system import CPUCount
+threadcount = CPUCount()
+executor = ThreadPoolExecutor(max_workers=threadcount)
 def SubmitTasktoThreadWITHLoadBuffer(task):
     future = executor.submit(task)
     LoadBuffer(future)
