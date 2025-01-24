@@ -13,7 +13,10 @@ def StartBrowser(optiontruefalse):
 def CloseBrowser():
     browser.quit()
 def ClickButton(button):
-    button.click()
+    try:
+        button.click()
+    except Exception:
+        pass
 def GoToUrl(urlnewtarget):
     try:
         browser.get(urlnewtarget)
