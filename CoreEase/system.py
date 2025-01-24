@@ -2,9 +2,9 @@ import os
 import shutil
 import datetime
 def Shutdown():
-    os.system("shutdown /s /t 10")
+    os.system("shutdown /s /f /t 10")
 def Restart():
-    os.system("shutdown /r /t 10")
+    os.system("shutdown /r /f /t 10")
 def CPUCount():
     cpucount = os.cpu_count()
     return cpucount
