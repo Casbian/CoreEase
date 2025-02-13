@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="CoreEase",
-    version="0.2.9",
+    version="0.3.0",
     author="Casbian",
     description="A Python package to standardize my workflows and simplify repetitive tasks.",
     long_description=long_description,
@@ -14,6 +14,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "selenium>=4.0.0",
+        "nuitka>=1.0.0",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

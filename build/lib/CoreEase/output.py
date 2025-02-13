@@ -1,33 +1,42 @@
-import os
-import tkinter.messagebox
-from .system import ConsoleWidth
-def ClearConsole():
-    os.system("cls")
-def Print(string):
+#=========================================================================
+ # NORMAL
+def N_PRINT(string:str):
     print(string)
-def Input(string):
+def N_INPUT(string:str):
     input(string)
-def EnumeratedPrint(list):
+def N_ENUMERATED_PRINT(list:list):
     for x,y in enumerate(list):
         print(x + y)
-def CenteredPrint(string,filler):
-    console_w = ConsoleWidth()
-    print(string.center(console_w, filler))
-def CenteredPrintTempLine(string,filler):
-    console_w = ConsoleWidth()
-    print(string.center(console_w, filler), end="\r")
-def CenteredInput(string):
-    console_w = ConsoleWidth()
+#=========================================================================
+ # CENTERED
+def C_PRINT(string:str,filler:str):
+    import shutil
+    console_w = shutil.get_terminal_size().columns
+    print(string.center(console_w,filler))
+def C_TEMP_PRINT(string:str,filler:str):
+    import shutil
+    console_w = shutil.get_terminal_size().columns
+    print(string.center(console_w,filler),end="\r")
+def C_INPUT(string:str):
+    import shutil
+    console_w = shutil.get_terminal_size().columns
     console_lp = console_w // 2 - (len(string)+2)
     x = input(" " * console_lp + string + " " * 5)
     return x
-def EnumeratedCenteredPrint(list):
-    console_w = ConsoleWidth()
+def C_ENUMERATED_PRINT(list:list):
+    import shutil
+    console_w = shutil.get_terminal_size().columns
     for x,y in enumerate(list):
-        print(x + y.center(console_w, " "))
-def CreateMessageboxInfo(title, message):
-    tkinter.messagebox.showinfo(title, message)
-def CreateMessageboxWarning(title, message):
-    tkinter.messagebox.showwarning(title, message)
-def CreateMessageboxError(title, message):
-    tkinter.messagebox.showerror(title, message)
+        print(x + y.center(console_w," "))
+#=========================================================================
+# MESSAGEBOX
+def MB_INFO(title:str,message:str):
+    import tkinter.messagebox
+    tkinter.messagebox.showinfo(title,message)
+def MB_WARNING(title:str,message:str):
+    import tkinter.messagebox
+    tkinter.messagebox.showwarning(title,message)
+def MB_ERROR(title:str,message:str):
+    import tkinter.messagebox
+    tkinter.messagebox.showerror(title,message)
+#=========================================================================

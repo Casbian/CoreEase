@@ -2,11 +2,11 @@ LICENSE
 README.md
 setup.py
 CoreEase/__init__.py
+CoreEase/compiler.py
 CoreEase/executor.py
 CoreEase/explorer.py
 CoreEase/output.py
 CoreEase/system.py
-CoreEase/timemanager.py
 CoreEase/webdriver.py
 CoreEase.egg-info/PKG-INFO
 CoreEase.egg-info/SOURCES.txt

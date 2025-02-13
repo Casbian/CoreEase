@@ -1,72 +1,62 @@
-import os
-import shutil
-import datetime
-import time
-def Shutdown():
-    os.system("shutdown /s /f /t 10")
-def Restart():
-    os.system("shutdown /r /f /t 10")
-def Wait(seconds):
-    time.sleep(seconds)
-def CPUCount():
-    cpucount = os.cpu_count()
-    return cpucount
-def ConsoleHeight():
+#=========================================================================
+    # CONSOLE // SHELL
+def CMD_HEIGHT():
+    import shutil
     consoleheight = shutil.get_terminal_size().lines
     return consoleheight
-def ConsoleWidth():
+def CMD_WIDTH():
+    import shutil
     consolewidth = shutil.get_terminal_size().columns
     return consolewidth
-def CurrentSystemTime():
+def CMD_CLEAR():
+    import os
+    os.system("cls")
+def CMD_COMMAND(command:str):
+    import os
+    os.system(command)
+#=========================================================================
+    # TIME
+def TIME_WAIT(second:int):
+    import time
+    time.sleep(second)
+def TIME_CURRENT():
+    import time
+    import datetime
     time = datetime.datetime.now()
     return time
-def GetEnvironmentVariable(key):
+def TIME_DIFFERENCE_WITHIN_24_HOUR(targettime:str):
+    import datetime
+    currenttime = TIME_CURRENT()
+    try:
+        targettime = datetime.datetime.combine(currenttime.date(),datetime.datetime.strptime(targettime,"%H:%M").time())
+    except (ValueError,TypeError):
+        return "Error try Format: str(%H:%M)"
+    timedifference = targettime - currenttime
+    return timedifference
+#=========================================================================
+    # ENVIRONMENT VARIABLE
+def ENV_CPUCOUNT():
+    import os
+    cpucount = os.cpu_count()
+    return cpucount
+def ENV_GET(key:str):
+    import os
     value = os.environ.get(key)
     return value
-def GetAllEnvironmentVariables():
+def ENV_GETALL():
+    import os
     variablelist = []
-    userprofile = os.environ.get('USERPROFILE')
-    appdata = os.environ.get('APPDATA')
-    localappdata = os.environ.get('LOCALAPPDATA')
-    temp = os.environ.get('TEMP')
-    path = os.environ.get('PATH')
-    homedrive = os.environ.get('HOMEDRIVE')
-    homepath = os.environ.get('HOMEPATH')
-    programfiles = os.environ.get('PROGRAMFILES')
-    programfiles_x86 = os.environ.get('PROGRAMFILES(X86)')
-    systemroot = os.environ.get('SYSTEMROOT')
-    comspec = os.environ.get('COMSPEC')
-    logname = os.environ.get('LOGNAME')
-    computername = os.environ.get('COMPUTERNAME')
-    processor_identifier = os.environ.get('PROCESSOR_IDENTIFIER')
-    systemdrive = os.environ.get('SYSTEMDRIVE')
-    windir = os.environ.get('WINDIR')
-    currentos = os.environ.get('OS')
-    userdomain = os.environ.get('USERDOMAIN')
-    username = os.environ.get('USERNAME')
-    prompt = os.environ.get('PROMPT')
-    sessionname = os.environ.get('SESSIONNAME')
-    logonserver = os.environ.get('LOGONSERVER')
-    variablelist.append(userprofile)
-    variablelist.append(appdata)
-    variablelist.append(localappdata)
-    variablelist.append(temp)
-    variablelist.append(path)
-    variablelist.append(homedrive)
-    variablelist.append(homepath)
-    variablelist.append(programfiles)
-    variablelist.append(programfiles_x86)
-    variablelist.append(systemroot)
-    variablelist.append(comspec)
-    variablelist.append(logname)
-    variablelist.append(computername)
-    variablelist.append(processor_identifier)
-    variablelist.append(systemdrive)
-    variablelist.append(windir)
-    variablelist.append(currentos)
-    variablelist.append(userdomain)
-    variablelist.append(username)
-    variablelist.append(prompt)
-    variablelist.append(sessionname)
-    variablelist.append(logonserver)
+    keys = ['USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'TEMP', 'PATH', 'HOMEDRIVE', 'HOMEPATH','PROGRAMFILES', 'PROGRAMFILES(X86)', 'SYSTEMROOT', 'COMSPEC', 'LOGNAME', 'COMPUTERNAME','PROCESSOR_IDENTIFIER', 'SYSTEMDRIVE', 'WINDIR', 'OS', 'USERDOMAIN', 'USERNAME','PROMPT', 'SESSIONNAME', 'LOGONSERVER']
+    for x in keys:
+        value = os.environ.get(x)
+        variablelist.append(x,value)
     return variablelist
+#=========================================================================
+    # SYSTEM DIRECT
+def SYS_SHUTDOWN(time:int):
+    import os
+    os.system(f'shutdown /s /f /t {time}')
+def SYS_RESTART(time:int):
+    import os
+    os.system(f'shutdown /r /f /t {time}')
+#=========================================================================
