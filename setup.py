@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="CoreEase",
-    version="0.3.0",
+    version="0.3.1",
     author="Casbian",
     description="A Python package to standardize my workflows and simplify repetitive tasks.",
     long_description=long_description,
