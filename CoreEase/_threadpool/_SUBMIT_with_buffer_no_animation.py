@@ -1,5 +1,5 @@
 #=========================================================================
-def SUBMIT_WBNA(task:function,executor:object):
+def SUBMIT_WBNA(task:callable,executor:object):
     future = executor.submit(task)
     while future.done() != True:
         pass

@@ -7,6 +7,8 @@ CoreEase.egg-info/SOURCES.txt
 CoreEase.egg-info/dependency_links.txt
 CoreEase.egg-info/requires.txt
 CoreEase.egg-info/top_level.txt
+CoreEase/_compiler/_LEXER.py
+CoreEase/_compiler/_PARSER.py
 CoreEase/_compiler/_PIPELINE_exe.py
 CoreEase/_compiler/__init__.py
 CoreEase/_output/_CMD_centered.py

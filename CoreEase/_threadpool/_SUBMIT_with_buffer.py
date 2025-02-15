@@ -1,5 +1,5 @@
 #=========================================================================
-def SUBMIT_WB(task:function,executor:object):
+def SUBMIT_WB(task:callable,executor:object):
     import math
     import shutil
     future = executor.submit(task)
