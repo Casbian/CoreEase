@@ -1,6 +1,6 @@
 #=========================================================================
-from . import _compiler
-from . import _threadpool
-from . import _system
-from . import _webdriver
+def PATH_JOIN(path:str,path2:str):
+    import os
+    r = os.path.join(path,path2)
+    return r
 #=========================================================================

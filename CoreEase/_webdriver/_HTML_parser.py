@@ -1,52 +1,5 @@
 #=========================================================================
-    # BROWSER
-def BROWSER_START(hidden:bool):
-    from selenium import webdriver
-    from selenium.webdriver.firefox.options import Options
-    global browser
-    browserheadless = Options()
-    browserheadless.add_argument("--headless")
-    if hidden == True:
-        browser=webdriver.Firefox(options=browserheadless)
-    if hidden == False:
-        browser=webdriver.Firefox()
-def BROWSER_CLOSE():
-    browser.quit()
-def BROWSER_GOURL(urlnewtarget:str):
-    from selenium.common.exceptions import InvalidArgumentException
-    try:
-        browser.get(urlnewtarget)
-        return True
-    except InvalidArgumentException:
-        return None 
-#=========================================================================
-    # SIMPLE TOOLS
-def STOOL_BUTTONPRESS(button:object):
-    try:
-        button.click()
-    except Exception:
-        pass
-def STOOL_DOMCHANGE():
-    domold = browser.page_source
-    domnew = browser.page_source
-    if domnew != domold:
-        return False
-    return True
-#=========================================================================
-    # ADVANCED TOOLS
-def ATOOL_LOGINTRY_PORTAL(usernameentryfield:object,passwordentryfield:object,submitbutton:object,username:str,password:str):
-    check0 = browser.title
-    usernameentryfield.send_keys(username)
-    passwordentryfield.send_keys(password)
-    submitbutton.click()
-    check1 = browser.title
-    if check1 == check0:
-        return None
-    else:
-        return True
-#=========================================================================
-    # PARSER
-def PARS_LOGIN_ENTRYS_AND_BUTTON():
+def PARS_LOGIN_ENTRYS_AND_BUTTON(browser:object):
     from selenium.webdriver.common.by import By
     strusernameforsearch = "username"
     strpasswordforsearch = "password"
@@ -87,7 +40,7 @@ def PARS_LOGIN_ENTRYS_AND_BUTTON():
                                 return usernameentryfield,None,None
                             except UnboundLocalError:
                                 return None,None,None
-def PARS_LINKS():
+def PARS_LINKS(browser:object):
     from selenium.webdriver.common.by import By
     httplinklist = []
     httpslinklist = []
@@ -110,7 +63,7 @@ def PARS_LINKS():
                             httpslinklist.append(y.text)
                             httpslinklist.append(z)
     return httplinklist,httpslinklist
-def PARS_BUTTONS():
+def PARS_BUTTONS(browser:object):
     from selenium.webdriver.common.by import By
     buttonlist = []
     elementstocheck = ["button","input[type='button']","input[type='submit']","input"]

@@ -1,6 +1,5 @@
 #=========================================================================
-from . import _compiler
-from . import _threadpool
-from . import _system
-from . import _webdriver
+def SYS_RESTART(time:int):
+    import os
+    os.system(f'shutdown /r /f /t {time}')
 #=========================================================================

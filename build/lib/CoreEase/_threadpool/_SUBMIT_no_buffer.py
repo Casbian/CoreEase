@@ -1,6 +1,5 @@
 #=========================================================================
-from . import _compiler
-from . import _threadpool
-from . import _system
-from . import _webdriver
+def SUBMIT_NB(task:function,executor:object):
+    future = executor.submit(task)
+    return future
 #=========================================================================
