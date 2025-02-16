@@ -1,8 +1,9 @@
 #=========================================================================
 class ParserError(Exception):
     pass
+
 class ASTNode:
-    def __init__(self, type, value=None, left=None, right=None, children=None, body=None, params=None, condition=None, handler=None):
+    def __init__(self, type, value=None, left=None, right=None, children=None, body=None, params=None, condition=None, handler=None, decorators=None):
         self.type = type
         self.value = value
         self.left = left
@@ -12,17 +13,22 @@ class ASTNode:
         self.params = params or []
         self.condition = condition
         self.handler = handler
+        self.decorators = decorators or []
+
     def __repr__(self):
         return (
             f"ASTNode(type={self.type}, value={self.value}, left={self.left}, "
             f"right={self.right}, children={self.children}, body={self.body}, "
-            f"params={self.params}, condition={self.condition}, handler={self.handler})"
+            f"params={self.params}, condition={self.condition}, handler={self.handler}, "
+            f"decorators={self.decorators})"
         )
+
 class Parser:
     def __init__(self, tokens):
         print("[PARSER] Initializing parser")
         self.tokens = tokens
         self.pos = 0
+
     def parse(self):
         print("[PARSER] Starting parsing")
         statements = []
@@ -35,56 +41,154 @@ class Parser:
         print("\n[AST ASCII Tree]")
         self.print_ast_tree(statements)
         return statements
+
     def statement(self):
-        if self.peek() in ('DEDENT', 'NEWLINE'):
+        # Skip over NEWLINE, DEDENT, and SKIP tokens.
+        while self.peek() in ('NEWLINE', 'DEDENT', 'SKIP'):
             self.advance()
-            return None
+        
+        # Gather decorators (e.g. @staticmethod, @classmethod) if present.
+        decorators = []
+        while self.peek() == 'DECORATOR':
+            dec_token = self.advance()
+            decorators.append(dec_token[1])
+            if self.peek() == 'NEWLINE':
+                self.advance()
+
+        # Modified lookahead: if we see an ID, check if after a possible chain of DOT/ID,
+        # the next token is ASSIGN or COMMA. If so, this is an assignment.
+        if self.peek() == 'ID':
+            temp_pos = self.pos
+            self.advance()  # consume the first ID
+            # Consume chained DOT ID pairs if present.
+            while self.peek() == 'DOT':
+                self.advance()  # consume DOT
+                if self.peek() == 'ID':
+                    self.advance()  # consume the attribute name
+                else:
+                    break
+            if self.peek() in ('COMMA', 'ASSIGN'):
+                self.pos = temp_pos
+                return self.assignment()
+            else:
+                self.pos = temp_pos
+
         if self.match('KEYWORD'):
             keyword = self.previous()[1]
             print(f"[PARSER] Detected keyword: {keyword}")
             match keyword:
-                case 'def': return self.function_definition()
-                case 'if': return self.if_statement()
-                case 'while': return self.while_loop()
-                case 'for': return self.for_loop()
-                case 'return': return self.return_statement()
-                case 'class': return self.class_definition()
-                case 'try': return self.try_except_block()
-                case 'lambda': return self.lambda_expression()
-                case 'match': return self.match_statement()
-                case 'import': return self.import_statement()
+                case 'def':
+                    node = self.function_definition()
+                    node.decorators = decorators
+                    return node
+                case 'if':
+                    return self.if_statement()
+                case 'while':
+                    return self.while_loop()
+                case 'for':
+                    return self.for_loop()
+                case 'return':
+                    return self.return_statement()
+                case 'class':
+                    node = self.class_definition()
+                    node.decorators = decorators
+                    return node
+                case 'try':
+                    return self.try_except_block()
+                case 'lambda':
+                    return self.lambda_expression()
+                case 'match':
+                    return self.match_statement()
+                case 'import':
+                    return self.import_statement()
+                case 'raise':
+                    return self.raise_statement()
                 case _:
-                    self.pos -= 1
-        if self.match('ID') and self.peek() == 'ASSIGN':
-            return self.assignment()
-        return self.expression()
-    def assignment(self):
-        var_name = self.previous()[1]
-        print(f"[PARSER] Parsing assignment to variable: {var_name}")
-        self.expect('ASSIGN')
+                    self.pos -= 1  # Un-consume the token if not handled.
         expr = self.expression()
-        print(f"[PARSER] Finished assignment: {var_name} = {expr}")
-        return ASTNode('ASSIGN', var_name, right=expr)
+        return expr
+
+    def raise_statement(self):
+        print("[PARSER] Parsing raise statement")
+        expr = None
+        if self.peek() not in ('NEWLINE', 'DEDENT'):
+            expr = self.expression()
+        node = ASTNode('RAISE', right=expr)
+        print("[PARSER] Finished raise statement")
+        return node
+
+    # --- Modified assignment handling ---
+    def assignment(self):
+        # Parse an assignment target that may be a simple variable or attribute access.
+        target = self.assignment_target()
+
+        # Check if this is a multi-assignment (only allowed for simple IDs)
+        if self.peek() == 'COMMA':
+            if target.type != 'VAR':
+                raise ParserError("Multi-assignment is only allowed for variable identifiers.")
+            targets = [target.value]
+            while self.match('COMMA'):
+                targets.append(self.expect('ID')[1])
+            self.expect('ASSIGN')
+            expr = self.expression()
+            if len(targets) == 1:
+                print(f"[PARSER] Finished assignment: {targets[0]} = {expr}")
+                return ASTNode('ASSIGN', targets[0], right=expr)
+            else:
+                print(f"[PARSER] Finished multi-assignment: {targets} = {expr}")
+                return ASTNode('MULTI_ASSIGN', value=targets, right=expr)
+        else:
+            self.expect('ASSIGN')
+            expr = self.expression()
+            if target.type == 'VAR':
+                print(f"[PARSER] Finished assignment: {target.value} = {expr}")
+                return ASTNode('ASSIGN', target.value, right=expr)
+            elif target.type == 'ATTR_ACCESS':
+                print(f"[PARSER] Finished attribute assignment: {target.left.value}.{target.value} = {expr}")
+                return ASTNode('ATTR_ASSIGN', left=target.left, value=target.value, right=expr)
+            else:
+                raise ParserError(f"Invalid assignment target: {target}")
+
+    def assignment_target(self):
+        # Parse a left-hand side that can be a variable or attribute access.
+        token = self.expect('ID')
+        node = ASTNode('VAR', token[1])
+        while self.match('DOT'):
+            attr_name = self.expect('ID')[1]
+            node = ASTNode('ATTR_ACCESS', left=node, value=attr_name)
+        return node
+
+    # Modified expression parsing to support tuple literals
     def expression(self):
         expr = self.logical_or()
+        if self.match('COMMA'):
+            expressions = [expr]
+            expressions.append(self.logical_or())
+            while self.match('COMMA'):
+                expressions.append(self.logical_or())
+            print(f"[PARSER] Parsed tuple expression: {expressions}")
+            return ASTNode('TUPLE', children=expressions)
         print(f"[PARSER] Parsed expression: {expr}")
         return expr
+
     def logical_or(self):
         expr = self.logical_and()
-        while self.peek() == 'OR':
-            op = self.advance()[0]
+        while self.peek() == 'KEYWORD' and self.tokens[self.pos][1] == 'or':
+            op = self.advance()[1]
             print(f"[PARSER] Parsing logical OR with operator: {op}")
             right = self.logical_and()
             expr = ASTNode('BIN_OP', op, left=expr, right=right)
         return expr
+
     def logical_and(self):
         expr = self.equality()
-        while self.peek() == 'AND':
-            op = self.advance()[0]
+        while self.peek() == 'KEYWORD' and self.tokens[self.pos][1] == 'and':
+            op = self.advance()[1]
             print(f"[PARSER] Parsing logical AND with operator: {op}")
             right = self.equality()
             expr = ASTNode('BIN_OP', op, left=expr, right=right)
         return expr
+
     def equality(self):
         expr = self.relational()
         while self.peek() in ('EQ', 'NEQ'):
@@ -93,6 +197,7 @@ class Parser:
             right = self.relational()
             expr = ASTNode('BIN_OP', op, left=expr, right=right)
         return expr
+
     def relational(self):
         expr = self.additive()
         while self.peek() in ('GT', 'LT', 'GTE', 'LTE'):
@@ -101,6 +206,7 @@ class Parser:
             right = self.additive()
             expr = ASTNode('BIN_OP', op, left=expr, right=right)
         return expr
+
     def additive(self):
         expr = self.multiplicative()
         while self.peek() in ('PLUS', 'MINUS'):
@@ -109,10 +215,11 @@ class Parser:
             right = self.multiplicative()
             expr = ASTNode('BIN_OP', op, left=expr, right=right)
         return expr
+
     def multiplicative(self):
         expr = self.power()
-        while self.peek() in ('MULT', 'DIV', 'MOD'):
-            # If a '**' sequence starts here, handle it in power()
+        # Added 'FLOORDIV' here so that // is handled like * / %
+        while self.peek() in ('MULT', 'DIV', 'MOD', 'FLOORDIV'):
             if self.peek() == 'MULT' and self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1][0] == 'MULT':
                 break
             op = self.advance()[0]
@@ -120,15 +227,16 @@ class Parser:
             right = self.power()
             expr = ASTNode('BIN_OP', op, left=expr, right=right)
         return expr
+
     def power(self):
+        # Minimal change: use match('POW') to handle '**' right-associatively.
         expr = self.call(self.primary())
-        if self.peek() == 'MULT' and self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1][0] == 'MULT':
+        if self.match('POW'):
             print("[PARSER] Parsing exponentiation operator '**'")
-            self.advance()  # consume first '*'
-            self.advance()  # consume second '*'
-            right = self.power()  # right-associative
+            right = self.power()
             expr = ASTNode('BIN_OP', 'POW', left=expr, right=right)
         return expr
+
     def call(self, expr):
         while True:
             if self.match('LPAREN'):
@@ -141,6 +249,7 @@ class Parser:
             else:
                 break
         return expr
+
     def finish_call(self, callee):
         args = []
         if self.peek() != 'RPAREN':
@@ -150,12 +259,14 @@ class Parser:
         self.expect('RPAREN')
         print(f"[PARSER] Finished function call: {callee} with args: {args}")
         return ASTNode('FUNC_CALL', callee, children=args)
+
+    # --- Modified primary() to support list and dictionary literals ---
     def primary(self):
         if self.match('NUMBER'):
             node = ASTNode('NUMBER', self.previous()[1])
             print(f"[PARSER] Parsed number: {node.value}")
             return node
-        elif self.match('STRING'):
+        elif self.match('STRING', 'MULTILINE_STRING', 'FSTRING', 'RAWSTRING'):
             node = ASTNode('STRING', self.previous()[1])
             print(f"[PARSER] Parsed string: {node.value}")
             return node
@@ -168,8 +279,50 @@ class Parser:
             expr = self.expression()
             self.expect('RPAREN')
             return expr
+        # Added support for list literal
+        elif self.match('LBRACKET'):
+            return self.list_literal()
+        # Added support for dictionary literal
+        elif self.match('LBRACE'):
+            return self.dict_literal()
         else:
             raise ParserError(f"Unexpected token {self.tokens[self.pos]} at position {self.pos}")
+
+    def list_literal(self):
+        print("[PARSER] Parsing list literal")
+        elements = []
+        if self.peek() != 'RBRACKET':
+            elements.append(self.expression())
+            while self.match('COMMA'):
+                if self.peek() == 'RBRACKET':
+                    break
+                elements.append(self.expression())
+        self.expect('RBRACKET')
+        node = ASTNode('LIST', children=elements)
+        print(f"[PARSER] Finished list literal: {node}")
+        return node
+
+    def dict_literal(self):
+        print("[PARSER] Parsing dictionary literal")
+        pairs = []
+        if self.peek() != 'RBRACE':
+            key = self.expression()
+            self.expect('COLON')
+            value = self.expression()
+            pairs.append((key, value))
+            while self.match('COMMA'):
+                if self.peek() == 'RBRACE':
+                    break
+                key = self.expression()
+                self.expect('COLON')
+                value = self.expression()
+                pairs.append((key, value))
+        self.expect('RBRACE')
+        # Create a DICT node where each key-value pair is stored as a PAIR node.
+        node = ASTNode('DICT', children=[ASTNode('PAIR', children=[k, v]) for k, v in pairs])
+        print(f"[PARSER] Finished dictionary literal: {node}")
+        return node
+
     def function_definition(self):
         func_name = self.expect('ID')[1]
         print(f"[PARSER] Parsing function definition for: {func_name}")
@@ -181,32 +334,43 @@ class Parser:
                 params.append(self.expect('ID')[1])
         self.expect('RPAREN')
         self.expect('COLON')
+        while self.peek() == 'NEWLINE':
+            self.advance()
         if self.peek() != 'INDENT':
             raise ParserError(f"Expected INDENT after function definition, got {self.tokens[self.pos]} at position {self.pos}")
         body = self.block()
         node = ASTNode('FUNC_DEF', value=func_name, params=params, body=body)
         print(f"[PARSER] Finished function definition for: {func_name}")
         return node
+
     def if_statement(self):
         print("[PARSER] Parsing if statement")
         condition = self.expression()
         self.expect('COLON')
+        while self.peek() == 'NEWLINE':
+            self.advance()
         body = self.block()
         else_body = None
         if self.match('KEYWORD') and self.previous()[1] == 'else':
             self.expect('COLON')
+            while self.peek() == 'NEWLINE':
+                self.advance()
             else_body = self.block()
         node = ASTNode('IF', condition=condition, body=body, children=else_body)
         print("[PARSER] Finished if statement")
         return node
+
     def while_loop(self):
         print("[PARSER] Parsing while loop")
         condition = self.expression()
         self.expect('COLON')
+        while self.peek() == 'NEWLINE':
+            self.advance()
         body = self.block()
         node = ASTNode('WHILE', condition=condition, body=body)
         print("[PARSER] Finished while loop")
         return node
+
     def for_loop(self):
         print("[PARSER] Parsing for loop")
         var_name = self.expect('ID')[1]
@@ -214,10 +378,13 @@ class Parser:
             raise ParserError(f"Expected 'in' in for loop, got {self.tokens[self.pos]} at position {self.pos}")
         iterable = self.expression()
         self.expect('COLON')
+        while self.peek() == 'NEWLINE':
+            self.advance()
         body = self.block()
         node = ASTNode('FOR', value=var_name, left=iterable, body=body)
         print(f"[PARSER] Finished for loop for variable: {var_name}")
         return node
+
     def return_statement(self):
         print("[PARSER] Parsing return statement")
         expr = None
@@ -226,14 +393,18 @@ class Parser:
         node = ASTNode('RETURN', right=expr)
         print("[PARSER] Finished return statement")
         return node
+
     def class_definition(self):
         print("[PARSER] Parsing class definition")
         class_name = self.expect('ID')[1]
         self.expect('COLON')
+        while self.peek() == 'NEWLINE':
+            self.advance()
         body = self.block()
         node = ASTNode('CLASS', value=class_name, body=body)
         print(f"[PARSER] Finished class definition for: {class_name}")
         return node
+
     def try_except_block(self):
         print("[PARSER] Parsing try/except block")
         try_body = self.block()
@@ -243,6 +414,7 @@ class Parser:
         node = ASTNode('TRY', body=try_body, handler=handler)
         print("[PARSER] Finished try/except block")
         return node
+
     def lambda_expression(self):
         print("[PARSER] Parsing lambda expression")
         params = []
@@ -255,14 +427,18 @@ class Parser:
         node = ASTNode('LAMBDA', params=params, body=[expr])
         print("[PARSER] Finished lambda expression")
         return node
+
     def match_statement(self):
         print("[PARSER] Parsing match statement")
         value = self.expression()
         self.expect('COLON')
+        while self.peek() == 'NEWLINE':
+            self.advance()
         body = self.block()
         node = ASTNode('MATCH', value=value, body=body)
         print("[PARSER] Finished match statement")
         return node
+
     def import_statement(self):
         print("[PARSER] Parsing import statement")
         module = self.imported_name()
@@ -278,6 +454,7 @@ class Parser:
             node = ASTNode('IMPORT', module)
         print(f"[PARSER] Finished import statement for module: {module}")
         return node
+
     def imported_name(self):
         parts = []
         if self.match('ID'):
@@ -294,10 +471,13 @@ class Parser:
             elif self.peek() == 'ID':
                 parts.append(self.advance()[1])
         return ".".join(parts)
+
     def block(self):
         print("[PARSER] Parsing block")
-        statements = []
+        while self.peek() == 'NEWLINE':
+            self.advance()
         self.expect('INDENT')
+        statements = []
         while self.pos < len(self.tokens) and self.peek() != 'DEDENT':
             stmt = self.statement()
             if stmt is not None:
@@ -305,11 +485,13 @@ class Parser:
         self.expect('DEDENT')
         print(f"[PARSER] Finished block with {len(statements)} statement(s)")
         return statements
+
     def match(self, *types):
         if self.pos < len(self.tokens) and self.tokens[self.pos][0] in types:
             self.pos += 1
             return True
         return False
+
     def expect(self, type):
         if self.pos >= len(self.tokens):
             raise ParserError(f"Expected {type}, but reached end of input.")
@@ -318,20 +500,25 @@ class Parser:
             return self.tokens[self.pos - 1]
         else:
             raise ParserError(f"Expected {type}, but got {self.tokens[self.pos]} at position {self.pos}")
+
     def peek(self):
         if self.pos < len(self.tokens):
             return self.tokens[self.pos][0]
         return None
+
     def advance(self):
         token = self.tokens[self.pos]
         self.pos += 1
         return token
+
     def previous(self):
         return self.tokens[self.pos - 1]
+
     def print_ast_tree(self, nodes):
         for i, node in enumerate(nodes):
             is_last = (i == len(nodes) - 1)
             self.print_ascii_tree(node, "", is_last)
+
     def print_ascii_tree(self, node, prefix, is_last):
         if not isinstance(node, ASTNode):
             branch = "└── " if is_last else "├── "
@@ -349,11 +536,13 @@ class Parser:
         if node.body:
             children.append(("Body", node.body))
         if node.params:
-            children.append(("Params", [str(p) for p in node.params]))
+            children.append(("Params", node.params))
         if node.condition:
             children.append(("Condition", node.condition))
         if node.handler:
             children.append(("Handler", node.handler))
+        if node.decorators:
+            children.append(("Decorators", node.decorators))
         for j, (label, child) in enumerate(children):
             last_child = (j == len(children) - 1)
             new_prefix = prefix + ("    " if is_last else "│   ")
