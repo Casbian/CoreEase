@@ -3,7 +3,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 setup(
     name="CoreEase",
-    version="0.3.5",
+    version="0.3.6",
     author="Casbian",
     description="A Python package to standardize my workflows and simplify repetitive tasks.",
     long_description=long_description,
