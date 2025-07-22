@@ -1,4 +1,4 @@
-# ![ICON](https://i.ibb.co/9HFQKRH6/laptop-11649337.png) CoreEase
+# ![ICON](root/ui/assets/uiicon.png) CoreEase
 
 **CoreEase** is a Device Management Console  
 designed to manage systems from PXE boot to post-install software provisioning.
