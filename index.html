@@ -6,99 +6,99 @@
 <title>CoreEase</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-  /* Reset */
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-  body, html {
-    margin: 0; padding: 0;
-    height: 100%;
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color: #cbd5e1;
-    overflow-x: hidden;
-  }
-  /* Parallax background */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80') center center/cover no-repeat fixed;
-    opacity: 0.12;
-    z-index: -1;
-    will-change: transform;
-    transform-origin: center;
-  }
-  /* Header */
-  header {
-    position: sticky;
-    top: 0;
-    background: rgba(15, 23, 42, 0.9);
-    color: #e0e7ff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 2rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.6);
-    z-index: 10;
-  }
-  header img {
-    height: 48px;
-    filter: drop-shadow(0 0 3px rgba(0,0,0,0.7));
-  }
-  header h1 {
-    font-weight: 600;
-    font-size: 1.8rem;
-    margin: 0;
-  }
-  /* Main container */
-  main {
-    max-width: 900px;
-    margin: 3rem auto 4rem;
-    background: rgba(15, 23, 42, 0.75);
-    border-radius: 1rem;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-    padding: 2.5rem 3rem;
-    color: #e0e7ff;
-  }
-  section {
-    margin-bottom: 2.5rem;
-  }
-  h2 {
-    margin-top: 0;
-    border-bottom: 3px solid #2563eb;
-    padding-bottom: 0.3rem;
-    margin-bottom: 1rem;
-    color: #93c5fd;
-  }
-  ul {
-    padding-left: 1.25rem;
-  }
-  ul li {
-    margin: 0.6rem 0;
-    font-weight: 500;
-  }
-  footer {
-    text-align: center;
-    padding: 2rem 1rem;
-    color: #94a3b8;
-    font-size: 0.9rem;
-  }
+*, *::before, *::after {box-sizing: border-box;}
+body, html {
+  margin: 0; padding: 0;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  background: #000000;
+  color: #cbd5e1;
+  overflow-x: hidden;
+  --scroll-y: 0;
+}
+header {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(45deg, rgba(128, 128, 128, 0), rgba(255, 255, 255, 0.4));
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  box-shadow: 0 3px 15px rgba(0,0,0,0.5);
+  z-index: 10;
+  text-shadow: none;
+  transition: justify-content 0.4s ease;
+}
+header.left-align {
+  justify-content: flex-start;
+  padding-left: 3.5rem;
+}
+header img {
+  height: 48px;
+  filter: none;
+}
+header h1 {
+  font-weight: 700;
+  font-size: 2rem;
+  margin: 0;
+  letter-spacing: 1.2px;
+  user-select: none;
+  text-shadow: none;
+}
+main {
+  max-width: 900px;
+  margin: 4rem auto 5rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(128, 128, 128, 0));
+  border-radius: 1rem;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+  padding: 3rem 3.5rem;
+  color: #ffffff;
+  backdrop-filter: saturate(180%) blur(12px);
+}
+section {
+  margin-bottom: 3rem;
+}
+h2 {
+  margin-top: 0;
+  border-bottom: 3px solid #b915c585;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+  text-shadow: none;
+}
+p, ul {
+  font-weight: 500;
+  line-height: 1.6;
+  color: #ffffff;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+ul {
+  padding-left: 1.5rem;
+}
+ul li {
+  margin: 0.8rem 0;
+}
+footer {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #ffffff85;
+  font-size: 0.9rem;
+  text-shadow: 0 0 4px #00000085;
+  user-select: none;
+}
 </style>
 </head>
 <body>
-
 <header>
   <img src="root/ui/assets/uiicon.png" alt="CoreEase Icon" />
   <h1>CoreEase</h1>
 </header>
-
 <main>
   <section>
     <p><strong>CoreEase</strong> is a Device Management Console designed to manage systems from PXE boot to post-install software provisioning.</p>
   </section>
-
   <section>
     <h2>💡 Planned Features</h2>
     <ul>
@@ -109,38 +109,29 @@
       <li>📊 Reporting and logging</li>
     </ul>
   </section>
-
   <section>
     <h2>🛠️ Work in Progress</h2>
-    <p>This is a one-person project currently under active development.<br />
-      Expect no rapid changes, evolving architecture, and incomplete features !!!</p>
+    <p>This is a one-person project currently under active development.<br />Expect no rapid changes, evolving architecture, and incomplete features !!!</p>
   </section>
-
   <section>
     <h2>📄 License</h2>
-    <p>This project is currently private and unlicensed.<br />
-      A public license may be added later once development stabilizes.</p>
+    <p>This project is currently private and unlicensed.<br />A public license may be added later once development stabilizes.</p>
   </section>
 </main>
-
 <footer>
-  &copy; 2025 CoreEase Project – All rights reserved.
+  &copy; 2025 Casbian™
 </footer>
-
 <script>
+  const header = document.querySelector('header')
+  const main = document.querySelector('main')
   window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    document.body.style.setProperty('--scroll-y', `${scrolled}px`);
-    // apply subtle parallax transform to the ::before pseudo-element
-    document.body.style.setProperty('--parallax-transform', `translateY(${scrolled * 0.3}px) scale(1.05)`);
-  });
+    const mainRect = main.getBoundingClientRect()
+    if(mainRect.top <= header.offsetHeight && mainRect.bottom > header.offsetHeight){
+      header.classList.add('left-align')
+    } else {
+      header.classList.remove('left-align')
+    }
+  })
 </script>
-
-<style>
-  body::before {
-    transform: translateY(calc(var(--scroll-y, 0) * 0.3)) scale(1.05);
-  }
-</style>
-
 </body>
 </html>
