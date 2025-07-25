@@ -5,11 +5,12 @@ import sqlite3
 ##==================================================##
 ## FUNCTIONS
 ##==================================================##
+
 """
 def SETUP():
     with open("root\\sys\\database\\Name")
 def CONNECT(DatabaseAdress:str):
-    return sqlite3.connect()
+    return sqlite3.connect(DatabaseAdress)
 
 
 conn = sqlite3.connect('mydatabase.db')
@@ -26,12 +27,12 @@ conn.close()
 
 go woth SQL Server Windows and AD
 
-
-
-
-
-
 """
+
+
+
+
+
 
 
 
