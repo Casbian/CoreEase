@@ -1,8 +1,7 @@
-##==================================================##
+﻿##==================================================##
 ## MAIN SCRIPT
 ##==================================================##
-
-# Initialize UI
+#Initialize UI
 $INSTALLERPATH = "root\\sys\\assets\\InstallerPython.exe"
 $UIINITIALIZE = $false
 while (-not $UIINITIALIZE) {
